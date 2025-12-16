@@ -1,36 +1,97 @@
-# two-way-arbitrage-stake-calculator
+# Profit Weighted Arbitrage Calculator
 
-A lightweight **JavaScript / TypeScript** calculator for **two-outcome betting arbitrage**, supporting equal-profit, weighted-profit, and zero-loss stake distributions using a fixed total bankroll.
+A browser-based **two-way profit-weighted arbitrage calculator** that helps you size stakes across opposing outcomes while visualizing profit symmetry, asymmetry, and risk.
 
----
-
-## 🧮 Overview
-
-This project computes optimal stake allocations for **two opposing outcomes** (e.g. True/False, Yes/No, Home/Away) given:
-
-- decimal odds for both outcomes
-- a total amount of money to be staked in full
-
-It dynamically calculates multiple arbitrage strategies while ensuring that **no outcome results in a loss** (subject to rounding).
+Live, dependency-free, and designed for **real execution scenarios** (odds boosts, stake limits, manual overrides).
 
 ---
 
-## ✨ Features
+## 🔗 Live Demo
 
-- Accepts **two opposing decimal odds**
-- Uses a **single total bankroll**
-- Calculates stake distributions for:
-  - **1:1** – equal profit on both outcomes
-  - **2:1** – profit weighted toward outcome A
-  - **1:2** – profit weighted toward outcome B
-  - **1:0** – profit on A, break-even on B
-  - **0:1** – profit on B, break-even on A
-- Displays:
-  - stake per outcome
-  - profit if outcome A wins
-  - profit if outcome B wins
-  - arbitrage validity after real-world rounding
-- No external dependencies
-- Runs directly in the browser
+> `https://wesharethisplace.github.io/profit-weighted-arbitrage-calculator/`
 
 ---
+
+## 🧮 What this tool does
+
+Given:
+- **Two opposing decimal odds** (True / False)
+- A **total stake** (or manually edited stakes)
+
+The calculator continuously recomputes stake distributions and resulting profits for multiple arbitrage strategies — **without breaking focus while typing**.
+
+---
+
+## 📊 Scenarios Explained
+
+| Scenario | Meaning |
+|--------|--------|
+| **WIN:WIN** | Equal profit regardless of outcome (classic arbitrage) |
+| **WIN:HALF-WIN** | Profit biased toward True |
+| **HALF-WIN:WIN** | Profit biased toward False |
+| **WIN:EVEN** | Profit on True, break-even on False |
+| **EVEN:WIN** | Break-even on True, profit on False |
+| **MANUAL** | Fully custom stakes with automatic outcome labeling |
+
+The **MANUAL** row dynamically labels itself as:
+- `WIN:WIN`
+- `WIN:LOSS`
+- `LOSS:WIN`
+- `LOSS:LOSS`
+- `EVEN:*`
+
+based on the resulting profit of each outcome.
+
+---
+
+## ✨ Key Features
+
+- All **Stake True / Stake False cells are editable**
+- Editing **any stake**:
+  - Recalculates the paired stake for that scenario
+  - Updates the **total stake**
+  - Recomputes all dependent scenarios
+- Editing **Total stake** recalculates all non-manual scenarios
+- Manual row is fully independent
+- Profit cells show:
+  - **Green +** for profit
+  - **Red −** for loss
+- No focus loss while typing
+- Decimal typing supported (e.g. `0.20`) even with `step=1`
+- Zero dependencies
+- Runs fully in the browser
+
+---
+
+## 🧠 Intended Use Cases
+
+- Odds boosts & promotions
+- Stake-limit-aware arbitrage
+- Profit skew analysis
+- Manual hedge verification
+- Educational exploration of arbitrage math
+- Lightweight internal tooling
+
+---
+
+## ⚙️ Tech Stack
+
+- Vanilla **HTML / CSS / JavaScript**
+- No frameworks
+- No build step
+- No tracking or external calls
+
+---
+
+## ⚠️ Disclaimer
+
+This tool is provided for **educational and analytical purposes only**.
+
+It does **not** place bets, connect to bookmakers, or encourage gambling activity.  
+Always verify bookmaker terms, settlement rules, and stake limits before placing real bets.
+
+---
+
+## 📄 License
+
+MIT
