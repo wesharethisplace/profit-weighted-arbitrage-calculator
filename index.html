@@ -1,29 +1,61 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Arbitrage Stake Calculator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profit Weighted Arbitrage Calculator</title>
+
+  <meta name="description" content="Two-way profit-weighted arbitrage calculator for stake sizing across opposing odds (equal profit, weighted profit, and zero-loss scenarios)." />
+  <meta name="keywords" content="profit weighted arbitrage calculator, arbitrage calculator, betting odds, stake sizing, two-way arbitrage, equal profit, dutching calculator" />
+
+  <link rel="icon" type="image/svg+xml"
+        href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><polygon points="32,6 58,54 6,54" fill="%23007BFF"/></svg>' />
+
   <style>
-    body { font-family: system-ui, Arial; padding: 16px; max-width: 900px; }
-    input { width: 120px; padding: 6px; margin-right: 8px; }
+    body { font-family: system-ui, Arial, sans-serif; padding: 16px; max-width: 980px; margin: 0 auto; }
+    h2 { margin: 0 0 10px; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    label { font-size: 14px; }
+    input { width: 130px; padding: 7px; }
+
     table { border-collapse: collapse; width: 100%; margin-top: 14px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-    th { text-align: right; background: #f6f6f6; }
+    th { background: #f6f6f6; }
     td:first-child, th:first-child { text-align: left; }
-    .bad { color: #b00020; font-weight: 600; }
-    .ok { color: #0a7a0a; font-weight: 600; }
+
+    .bad { color: #b00020; font-weight: 700; }
+    .ok  { color: #0a7a0a; font-weight: 700; }
+
+    .pos { color: #0a7a0a; font-weight: 700; }
+    .neg { color: #b00020; font-weight: 700; }
+    .neu { color: #555; font-weight: 700; }
+
+    .hint { font-size: 13px; color: #555; margin-top: 10px; line-height: 1.35; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    .cellInput { width: 120px; padding: 4px; }
   </style>
 </head>
-<body>
-  <h2>Arbitrage stake calculator (2-way)</h2>
 
-  <div>
+<body>
+  <h2>Profit Weighted Arbitrage Calculator</h2>
+
+  <div class="controls">
     <label>Odd True:</label>
     <input id="oddTrue" type="number" step="0.01" value="3.00" />
+
     <label>Odd False:</label>
     <input id="oddFalse" type="number" step="0.01" value="1.67" />
+
     <label>Total stake:</label>
-    <input id="bankroll" type="number" step="0.01" value="100" />
+    <input id="bankroll" type="number" step="1" value="100" />
+  </div>
+
+  <div class="hint">
+    • Change <span class="mono">Total stake</span> to recalculate all rows except the manual <span class="mono">?:?</span> row.<br/>
+    • All <span class="mono">Stake</span> cells are editable. Editing one side recalculates the other side for that row’s strategy, updates the total stake, and refreshes all other rows (except manual).<br/>
+    • You can still type decimals like <span class="mono">.20</span> even though the step is <span class="mono">1</span>.
   </div>
 
   <table>
@@ -37,113 +69,306 @@
         <th>Status</th>
       </tr>
     </thead>
-    <tbody id="rows"></tbody>
+
+    <tbody>
+      <tr>
+        <td>1:1</td>
+        <td><input id="t11" class="cellInput" type="number" step="1" value="36"></td>
+        <td><input id="f11" class="cellInput" type="number" step="1" value="64"></td>
+        <td id="pT11"></td>
+        <td id="pF11"></td>
+        <td id="st11"></td>
+      </tr>
+
+      <tr>
+        <td>2:1</td>
+        <td><input id="t21" class="cellInput" type="number" step="1" value="0"></td>
+        <td><input id="f21" class="cellInput" type="number" step="1" value="0"></td>
+        <td id="pT21"></td>
+        <td id="pF21"></td>
+        <td id="st21"></td>
+      </tr>
+
+      <tr>
+        <td>1:2</td>
+        <td><input id="t12" class="cellInput" type="number" step="1" value="0"></td>
+        <td><input id="f12" class="cellInput" type="number" step="1" value="0"></td>
+        <td id="pT12"></td>
+        <td id="pF12"></td>
+        <td id="st12"></td>
+      </tr>
+
+      <tr>
+        <td>1:0</td>
+        <td><input id="t10" class="cellInput" type="number" step="1" value="0"></td>
+        <td><input id="f10" class="cellInput" type="number" step="1" value="0"></td>
+        <td id="pT10"></td>
+        <td id="pF10"></td>
+        <td id="st10"></td>
+      </tr>
+
+      <tr>
+        <td>0:1</td>
+        <td><input id="t01" class="cellInput" type="number" step="1" value="0"></td>
+        <td><input id="f01" class="cellInput" type="number" step="1" value="0"></td>
+        <td id="pT01"></td>
+        <td id="pF01"></td>
+        <td id="st01"></td>
+      </tr>
+
+      <tr>
+        <td id="lblC">?:?</td>
+        <td><input id="tC" class="cellInput" type="number" step="1" value="0"></td>
+        <td><input id="fC" class="cellInput" type="number" step="1" value="0"></td>
+        <td id="pTC"></td>
+        <td id="pFC"></td>
+        <td id="stC"></td>
+      </tr>
+    </tbody>
   </table>
 
 <script>
-  function round2(x) {
-    return Math.round((x + Number.EPSILON) * 100) / 100;
-  }
+  const el = (id) => document.getElementById(id);
+
+  function round2(x) { return Math.round((x + Number.EPSILON) * 100) / 100; }
+  function nn(x) { x = Number(x); return (isFinite(x) ? Math.max(0, x) : 0); }
 
   function profits(t, f, oT, oF) {
-    const pT = t * (oT - 1) - f;
-    const pF = f * (oF - 1) - t;
-    return { pT, pF };
+    return {
+      pT: t * (oT - 1) - f,
+      pF: f * (oF - 1) - t
+    };
   }
 
-  // ratio a:b, both > 0
-  function stakesForProfitRatio(totalStake, oT, oF, a, b) {
+  function fmtSignedMoney(x) {
+    const v = round2(x);
+    if (v > 0) return `<span class="pos">+${v.toFixed(2)}</span>`;
+    if (v < 0) return `<span class="neg">-${Math.abs(v).toFixed(2)}</span>`;
+    return `<span class="neu">0.00</span>`;
+  }
+
+  function setIfNotActive(inputEl, valueStr) {
+    if (document.activeElement === inputEl) return;
+    inputEl.value = valueStr;
+  }
+
+  function statusFor(pT, pF) {
+    const ok = (pT >= -0.01 && pF >= -0.01);
+    return { ok, cls: ok ? "ok" : "bad", txt: ok ? "OK" : "NOT ARB" };
+  }
+
+  function stakesFromTotal_ratio(S, oT, oF, a, b) {
     const r = a / b;
     const denom = (oT + r * oF);
-    if (denom === 0) return null;
-
-    const t = totalStake * (1 + r * (oF - 1)) / denom;
-    const f = totalStake - t;
-    return { t, f };
+    if (!isFinite(denom) || denom === 0) return { t: 0, f: 0 };
+    const t = S * (1 + r * (oF - 1)) / denom;
+    return { t, f: S - t };
   }
 
-  // 1:0 => profitFalse = 0
-  function stakesProfitFalseZero(totalStake, oT, oF) {
-    const f = totalStake / oF;
-    const t = totalStake - f;
-    return { t, f };
+  function stakesFromOneSide_ratio(knownStake, knownSide, oT, oF, a, b) {
+    const r = a / b;
+    if (knownSide === "true") {
+      const t = knownStake;
+      const num = t * ((oT - 1) + r);
+      const den = (1 + r * (oF - 1));
+      const f = (den === 0) ? 0 : (num / den);
+      return { t, f };
+    } else {
+      const f = knownStake;
+      const num = f * (1 + r * (oF - 1));
+      const den = ((oT - 1) + r);
+      const t = (den === 0) ? 0 : (num / den);
+      return { t, f };
+    }
   }
 
-  // 0:1 => profitTrue = 0
-  function stakesProfitTrueZero(totalStake, oT, oF) {
-    const t = totalStake / oT;
-    const f = totalStake - t;
-    return { t, f };
+  function stakesFromTotal_pFZero(S, oT, oF) {
+    const f = S / oF;
+    return { t: S - f, f };
   }
 
-  function render() {
-    const oT = Number(document.getElementById("oddTrue").value);
-    const oF = Number(document.getElementById("oddFalse").value);
-    const S  = Number(document.getElementById("bankroll").value);
+  function stakesFromOneSide_pFZero(knownStake, knownSide, oT, oF) {
+    if (knownSide === "true") {
+      const t = knownStake;
+      const f = (oF - 1 === 0) ? 0 : (t / (oF - 1));
+      return { t, f };
+    } else {
+      const f = knownStake;
+      const t = f * (oF - 1);
+      return { t, f };
+    }
+  }
 
-    const tbody = document.getElementById("rows");
-    tbody.innerHTML = "";
+  function stakesFromTotal_pTZero(S, oT, oF) {
+    const t = S / oT;
+    return { t, f: S - t };
+  }
 
-    const scenarios = [
-      { name: "1:1", kind: "ratio", a: 1, b: 1 },
-      { name: "2:1", kind: "ratio", a: 2, b: 1 },
-      { name: "1:2", kind: "ratio", a: 1, b: 2 },
-      { name: "1:0", kind: "pFzero" },
-      { name: "0:1", kind: "pTzero" },
-    ];
+  function stakesFromOneSide_pTZero(knownStake, knownSide, oT, oF) {
+    if (knownSide === "true") {
+      const t = knownStake;
+      const f = t * (oT - 1);
+      return { t, f };
+    } else {
+      const f = knownStake;
+      const t = (oT - 1 === 0) ? 0 : (f / (oT - 1));
+      return { t, f };
+    }
+  }
 
-    const invalidInput =
-      !(oT > 1 && oF > 1 && S > 0) || !isFinite(oT) || !isFinite(oF) || !isFinite(S);
+  function gcd(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) [a, b] = [b, a % b];
+    return a || 1;
+  }
 
-    if (invalidInput) {
-      tbody.innerHTML = `<tr><td colspan="6" class="bad">Enter valid odds (>1.00) and total stake (>0).</td></tr>`;
+  function approxRatio(a, b, maxDen = 30) {
+    if (!(a > 0) || !(b > 0)) return null;
+    const x = a / b;
+    let best = { num: 1, den: 1, err: Infinity };
+    for (let den = 1; den <= maxDen; den++) {
+      const num = Math.round(x * den);
+      const err = Math.abs(x - num / den);
+      if (err < best.err) best = { num, den, err };
+    }
+    const g = gcd(best.num, best.den);
+    return { num: best.num / g, den: best.den / g };
+  }
+
+  const rows = [
+    { key: "11", type: "ratio", a: 1, b: 1, t: el("t11"), f: el("f11"), pT: el("pT11"), pF: el("pF11"), st: el("st11") },
+    { key: "21", type: "ratio", a: 2, b: 1, t: el("t21"), f: el("f21"), pT: el("pT21"), pF: el("pF21"), st: el("st21") },
+    { key: "12", type: "ratio", a: 1, b: 2, t: el("t12"), f: el("f12"), pT: el("pT12"), pF: el("pF12"), st: el("st12") },
+    { key: "10", type: "pFZero", t: el("t10"), f: el("f10"), pT: el("pT10"), pF: el("pF10"), st: el("st10") },
+    { key: "01", type: "pTZero", t: el("t01"), f: el("f01"), pT: el("pT01"), pF: el("pF01"), st: el("st01") },
+    { key: "C",  type: "custom", t: el("tC"),  f: el("fC"),  pT: el("pTC"),  pF: el("pFC"),  st: el("stC") }
+  ];
+
+  const oddTrueEl = el("oddTrue");
+  const oddFalseEl = el("oddFalse");
+  const bankrollEl = el("bankroll");
+  const lblCEl = el("lblC");
+
+  function computeRowFromTotal(row, S, oT, oF) {
+    if (row.type === "custom") return null;
+    if (row.type === "ratio") return stakesFromTotal_ratio(S, oT, oF, row.a, row.b);
+    if (row.type === "pFZero") return stakesFromTotal_pFZero(S, oT, oF);
+    if (row.type === "pTZero") return stakesFromTotal_pTZero(S, oT, oF);
+    return null;
+  }
+
+  function computeRowFromEdit(row, side, value, oT, oF) {
+    if (row.type === "ratio") return stakesFromOneSide_ratio(value, side, oT, oF, row.a, row.b);
+    if (row.type === "pFZero") return stakesFromOneSide_pFZero(value, side, oT, oF);
+    if (row.type === "pTZero") return stakesFromOneSide_pTZero(value, side, oT, oF);
+    return null;
+  }
+
+  function updateRowUI(row, t, f, oT, oF, preserveActive) {
+    const tV = round2(nn(t));
+    const fV = round2(nn(f));
+
+    if (!preserveActive || document.activeElement !== row.t) setIfNotActive(row.t, String(tV));
+    if (!preserveActive || document.activeElement !== row.f) setIfNotActive(row.f, String(fV));
+
+    const pf = profits(tV, fV, oT, oF);
+    const pTr = round2(pf.pT);
+    const pFr = round2(pf.pF);
+
+    row.pT.innerHTML = fmtSignedMoney(pTr);
+    row.pF.innerHTML = fmtSignedMoney(pFr);
+
+    const st = statusFor(pTr, pFr);
+    row.st.className = st.cls;
+    row.st.textContent = st.txt;
+
+    return { pTr, pFr, tV, fV };
+  }
+
+  function updateCustomLabel(pTr, pFr) {
+    let label = "?:?";
+    const ra = approxRatio(Math.max(0, pTr), Math.max(0, pFr), 30);
+    if (pTr > 0.005 && pFr > 0.005 && ra) label = `${ra.num}:${ra.den}`;
+    lblCEl.textContent = label;
+  }
+
+  function updateAll(source) {
+    const oT = Number(oddTrueEl.value);
+    const oF = Number(oddFalseEl.value);
+
+    if (!(oT > 1 && oF > 1 && isFinite(oT) && isFinite(oF))) {
+      rows.forEach(r => {
+        r.pT.innerHTML = `<span class="neg">-</span>`;
+        r.pF.innerHTML = `<span class="neg">-</span>`;
+        r.st.className = "bad";
+        r.st.textContent = "Invalid odds";
+      });
       return;
     }
 
-    for (const sc of scenarios) {
-      let st;
+    let S = nn(bankrollEl.value);
 
-      if (sc.kind === "ratio") {
-        st = stakesForProfitRatio(S, oT, oF, sc.a, sc.b);
-      } else if (sc.kind === "pFzero") {
-        st = stakesProfitFalseZero(S, oT, oF);
-      } else if (sc.kind === "pTzero") {
-        st = stakesProfitTrueZero(S, oT, oF);
-      }
+    const active = document.activeElement;
+    const isCustomActive = (active === el("tC") || active === el("fC"));
 
-      if (!st || !isFinite(st.t) || !isFinite(st.f)) continue;
+    if (source && source.kind === "bankroll") {
+      rows.forEach(r => {
+        if (r.type === "custom") return;
+        const st = computeRowFromTotal(r, S, oT, oF);
+        updateRowUI(r, st.t, st.f, oT, oF, true);
+      });
+    } else if (source && source.kind === "rowEdit" && source.key !== "C") {
+      const row = rows.find(r => r.key === source.key);
+      const editedSide = source.side;
+      const editedVal = nn(source.value);
 
-      // round to cents (real-world betting)
-      const t = round2(st.t);
-      const f = round2(st.f);
+      const stEdited = computeRowFromEdit(row, editedSide, editedVal, oT, oF);
+      const resEdited = updateRowUI(row, stEdited.t, stEdited.f, oT, oF, true);
 
-      // recompute profits with rounded stakes
-      const { pT, pF } = profits(t, f, oT, oF);
-      const pTr = round2(pT);
-      const pFr = round2(pF);
+      S = round2(resEdited.tV + resEdited.fV);
+      setIfNotActive(bankrollEl, String(S));
 
-      const ok = (pTr >= -0.01 && pFr >= -0.01); // tiny tolerance due to rounding
-      const status = ok ? "OK" : "NOT ARB";
-      const cls = ok ? "ok" : "bad";
+      rows.forEach(r => {
+        if (r.key === row.key || r.type === "custom") return;
+        const st = computeRowFromTotal(r, S, oT, oF);
+        updateRowUI(r, st.t, st.f, oT, oF, true);
+      });
+    } else if (source && source.kind === "rowEdit" && source.key === "C") {
+      const tC = nn(el("tC").value);
+      const fC = nn(el("fC").value);
+      const resC = updateRowUI(rows.find(r => r.key === "C"), tC, fC, oT, oF, true);
+      updateCustomLabel(resC.pTr, resC.pFr);
+      return;
+    } else {
+      rows.forEach(r => {
+        if (r.type === "custom") return;
+        const st = computeRowFromTotal(r, S, oT, oF);
+        updateRowUI(r, st.t, st.f, oT, oF, true);
+      });
+    }
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${sc.name}</td>
-        <td>${t.toFixed(2)}</td>
-        <td>${f.toFixed(2)}</td>
-        <td>${pTr.toFixed(2)}</td>
-        <td>${pFr.toFixed(2)}</td>
-        <td class="${cls}">${status}</td>
-      `;
-      tbody.appendChild(tr);
+    if (!isCustomActive) {
+      const tC = nn(el("tC").value);
+      const fC = nn(el("fC").value);
+      const resC = updateRowUI(rows.find(r => r.key === "C"), tC, fC, oT, oF, true);
+      updateCustomLabel(resC.pTr, resC.pFr);
+    } else {
+      const pf = profits(nn(el("tC").value), nn(el("fC").value), oT, oF);
+      updateCustomLabel(round2(pf.pT), round2(pf.pF));
     }
   }
 
-  ["oddTrue", "oddFalse", "bankroll"].forEach(id => {
-    document.getElementById(id).addEventListener("input", render);
+  oddTrueEl.addEventListener("input", () => updateAll({ kind: "odds" }));
+  oddFalseEl.addEventListener("input", () => updateAll({ kind: "odds" }));
+
+  bankrollEl.addEventListener("input", (e) => updateAll({ kind: "bankroll", value: e.target.value }));
+
+  rows.forEach(r => {
+    r.t.addEventListener("input", (e) => updateAll({ kind: "rowEdit", key: r.key, side: "true", value: e.target.value }));
+    r.f.addEventListener("input", (e) => updateAll({ kind: "rowEdit", key: r.key, side: "false", value: e.target.value }));
   });
 
-  render();
+  updateAll({ kind: "init" });
 </script>
 </body>
 </html>
