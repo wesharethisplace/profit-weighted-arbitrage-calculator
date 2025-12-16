@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Arbitrage Stake Calculator</title>
+  <style>
+    body { font-family: system-ui, Arial; padding: 16px; max-width: 900px; }
+    input { width: 120px; padding: 6px; margin-right: 8px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 14px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+    th { text-align: right; background: #f6f6f6; }
+    td:first-child, th:first-child { text-align: left; }
+    .bad { color: #b00020; font-weight: 600; }
+    .ok { color: #0a7a0a; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h2>Arbitrage stake calculator (2-way)</h2>
+
+  <div>
+    <label>Odd True:</label>
+    <input id="oddTrue" type="number" step="0.01" value="3.00" />
+    <label>Odd False:</label>
+    <input id="oddFalse" type="number" step="0.01" value="1.67" />
+    <label>Total stake:</label>
+    <input id="bankroll" type="number" step="0.01" value="100" />
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Stake True</th>
+        <th>Stake False</th>
+        <th>Profit if True</th>
+        <th>Profit if False</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+<script>
+  function round2(x) {
+    return Math.round((x + Number.EPSILON) * 100) / 100;
+  }
+
+  function profits(t, f, oT, oF) {
+    const pT = t * (oT - 1) - f;
+    const pF = f * (oF - 1) - t;
+    return { pT, pF };
+  }
+
+  // ratio a:b, both > 0
+  function stakesForProfitRatio(totalStake, oT, oF, a, b) {
+    const r = a / b;
+    const denom = (oT + r * oF);
+    if (denom === 0) return null;
+
+    const t = totalStake * (1 + r * (oF - 1)) / denom;
+    const f = totalStake - t;
+    return { t, f };
+  }
+
+  // 1:0 => profitFalse = 0
+  function stakesProfitFalseZero(totalStake, oT, oF) {
+    const f = totalStake / oF;
+    const t = totalStake - f;
+    return { t, f };
+  }
+
+  // 0:1 => profitTrue = 0
+  function stakesProfitTrueZero(totalStake, oT, oF) {
+    const t = totalStake / oT;
+    const f = totalStake - t;
+    return { t, f };
+  }
+
+  function render() {
+    const oT = Number(document.getElementById("oddTrue").value);
+    const oF = Number(document.getElementById("oddFalse").value);
+    const S  = Number(document.getElementById("bankroll").value);
+
+    const tbody = document.getElementById("rows");
+    tbody.innerHTML = "";
+
+    const scenarios = [
+      { name: "1:1", kind: "ratio", a: 1, b: 1 },
+      { name: "2:1", kind: "ratio", a: 2, b: 1 },
+      { name: "1:2", kind: "ratio", a: 1, b: 2 },
+      { name: "1:0", kind: "pFzero" },
+      { name: "0:1", kind: "pTzero" },
+    ];
+
+    const invalidInput =
+      !(oT > 1 && oF > 1 && S > 0) || !isFinite(oT) || !isFinite(oF) || !isFinite(S);
+
+    if (invalidInput) {
+      tbody.innerHTML = `<tr><td colspan="6" class="bad">Enter valid odds (>1.00) and total stake (>0).</td></tr>`;
+      return;
+    }
+
+    for (const sc of scenarios) {
+      let st;
+
+      if (sc.kind === "ratio") {
+        st = stakesForProfitRatio(S, oT, oF, sc.a, sc.b);
+      } else if (sc.kind === "pFzero") {
+        st = stakesProfitFalseZero(S, oT, oF);
+      } else if (sc.kind === "pTzero") {
+        st = stakesProfitTrueZero(S, oT, oF);
+      }
+
+      if (!st || !isFinite(st.t) || !isFinite(st.f)) continue;
+
+      // round to cents (real-world betting)
+      const t = round2(st.t);
+      const f = round2(st.f);
+
+      // recompute profits with rounded stakes
+      const { pT, pF } = profits(t, f, oT, oF);
+      const pTr = round2(pT);
+      const pFr = round2(pF);
+
+      const ok = (pTr >= -0.01 && pFr >= -0.01); // tiny tolerance due to rounding
+      const status = ok ? "OK" : "NOT ARB";
+      const cls = ok ? "ok" : "bad";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${sc.name}</td>
+        <td>${t.toFixed(2)}</td>
+        <td>${f.toFixed(2)}</td>
+        <td>${pTr.toFixed(2)}</td>
+        <td>${pFr.toFixed(2)}</td>
+        <td class="${cls}">${status}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  ["oddTrue", "oddFalse", "bankroll"].forEach(id => {
+    document.getElementById(id).addEventListener("input", render);
+  });
+
+  render();
+</script>
+</body>
+</html>
